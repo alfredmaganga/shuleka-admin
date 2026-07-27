@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shuleka — Admin Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo-section">
+        <div class="logo-icon">📚</div>
+        <h1 class="logo-text">Shuleka</h1>
+        <p class="logo-sub">Admin Panel</p>
+      </div>
+      <div id="loadingMsg" style="text-align:center;padding:20px;color:#666;">
+        Inapakia...
+      </div>
+      <form id="loginForm" style="display:none;">
+        <div class="form-group">
+          <label for="email">Barua pepe</label>
+          <input type="email" id="email" placeholder="bungutano@gmail.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Neno la siri</label>
+          <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary" id="loginBtn">Ingia</button>
+        <p class="error-text" id="errorMsg"></p>
+      </form>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function() {
+      var SUPABASE_URL = 'https://uiwgbviucbbqcxdkpdwa.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpd2didml1Y2JicWN4ZGtwZHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNzI4MjIsImV4cCI6MjEwMDc0ODgyMn0.FN3z7fr4sbkMCIlTq_pXxccz0a-kqBUXghksoFYKJWg';
+
+      function waitForSupabase(cb) {
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+          cb();
+        } else {
+          setTimeout(function() { waitForSupabase(cb); }, 100);
+        }
+      }
+
+      waitForSupabase(function() {
+        var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        document.getElementById('loadingMsg').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+
+        sb.auth.getSession().then(function(result) {
+          if (result.data && result.data.session) {
+            window.location.href = 'dashboard.html';
+            return;
+          }
+        }).catch(function() {});
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          var email = document.getElementById('email').value.trim();
+          var password = document.getElementById('password').value;
+          var btn = document.getElementById('loginBtn');
+          var errorMsg = document.getElementById('errorMsg');
+
+          btn.textContent = 'Inaingia...';
+          btn.disabled = true;
+          errorMsg.textContent = '';
+
+          sb.auth.signInWithPassword({ email: email, password: password }).then(function(result) {
+            if (result.error) {
+              errorMsg.textContent = 'Hitilafu: ' + result.error.message;
+              btn.textContent = 'Ingia';
+              btn.disabled = false;
+              return;
+            }
+            window.location.href = 'dashboard.html';
+          }).catch(function(err) {
+            errorMsg.textContent = 'Hitilafu: ' + err.message;
+            btn.textContent = 'Ingia';
+            btn.disabled = false;
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
