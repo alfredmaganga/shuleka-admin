@@ -93,10 +93,9 @@
       var SUPABASE_URL = 'https://uiwgbviucbbqcxdkpdwa.supabase.co';
       var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVpd2didml1Y2JicWN4ZGtwZHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxNzI4MjIsImV4cCI6MjEwMDc0ODgyMn0.FN3z7fr4sbkMCIlTq_pXxccz0a-kqBUXghksoFYKJWg';
       
-      // OneSignal Configuration
-      // TODO: Replace with your OneSignal App ID and REST API Key from https://onesignal.com
-      var ONESIGNAL_APP_ID = '4e418ddf-7c60-4054-a3ad-c7c473c5b8ac';
-      var ONESIGNAL_REST_API_KEY = 'BJHMGV_JAtRKCD5gsFBigcUfOERLv_RSmGzJ01SSdkUv5IoEGeuc8GOUb99IsmB9Oz9imOXE93aRNo8cf_u2stg';
+      // Vercel API endpoint for sending notifications
+      // This will be updated after Vercel deployment
+      var NOTIFICATION_API = '/api/send-notification';
       
       var sb = null;
       var currentUser = null;
@@ -130,41 +129,22 @@
         });
       }
 
-      // Send push notification via OneSignal
+      // Send push notification via our API
       function sendPushNotification(title, body, category) {
-        var categoryLabels = {
-          matokeo: '📋 Matokeo',
-          taarifa: '📢 Taarifa',
-          notes: '📝 Notes',
-          vipimo: '🧪 Vipimo',
-          mengineyo: '📌 Mengineyo'
-        };
-        var heading = categoryLabels[category] || '📚 Shuleka';
-        
-        var payload = {
-          app_id: ONESIGNAL_APP_ID,
-          headings: { en: heading },
-          contents: { en: title },
-          subtitle: { en: body ? body.substring(0, 100) : '' },
-          included_segments: ['Total Subscriptions'],
-          name: 'Shuleka Post'
-        };
-
-        return fetch('https://onesignal.com/api/v1/notifications', {
+        return fetch(NOTIFICATION_API, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Basic ' + ONESIGNAL_REST_API_KEY
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ title: title, body: body, category: category })
         }).then(function(response) {
           return response.json();
         }).then(function(data) {
-          if (data.id) {
-            console.log('Push notification sent:', data.id);
+          if (data.success) {
+            console.log('Push notification sent:', data.messageId);
             return true;
           } else {
-            console.error('Push notification failed:', data);
+            console.error('Push notification failed:', data.error);
             return false;
           }
         }).catch(function(err) {
@@ -250,7 +230,7 @@
               document.getElementById('fileLabel').innerHTML = '<span class="file-icon">📎</span><span>Bofya kuweka PDF</span>';
               loadPosts();
               
-              // Send push notification to all users
+              // Send push notification
               sendPushNotification(title, body, category).then(function(sent) {
                 if (sent) {
                   successMsg.textContent = 'Post imetumwa na notification imetumwa! 📚✅';
